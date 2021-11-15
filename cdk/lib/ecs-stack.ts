@@ -73,8 +73,8 @@ export class EcsStack extends cdk.Stack {
     const taskDefinition = new ecs.FargateTaskDefinition(this, contextHelper.generate('task'), {
       taskRole: taskIamRole, // タスク s3, rds
       executionRole: executionIamRole, //ECS image pull,CloudWatch
-      cpu: 512,
-      memoryLimitMiB: 2048,
+      cpu: 256,
+      memoryLimitMiB: 512,
       family: contextHelper.generate('fargate-rds-cdk'),
     });
 

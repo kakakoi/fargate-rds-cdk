@@ -20,3 +20,7 @@ cdk-ecs-deploy:
 .PHONY: cdk-ecs-destroy
 cdk-ecs-destroy:
 	cd cdk;	cdk destroy EcsStack -c stage=${STAGE}
+
+.PHONY: docker-compose-destroy
+docker-compose-destroy:
+	docker-compose down --rmi all --volumes --remove-orphans
