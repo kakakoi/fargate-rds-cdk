@@ -27,7 +27,7 @@ export class PipelineStack extends Stack {
         commands: [
           'cd cdk',
           'npm i -g npm && npm ci',
-          'npx cdk synth',
+          `npx cdk synth -c STAGE=${contextHelper.stage}`,
           'ls -la',
           'mv cdk.out $CODEBUILD_SRC_DIR',
           'cd $CODEBUILD_SRC_DIR',//戻らないとs3にあげられない https://qiita.com/jucky330/items/5ccfc55d28291d94f2f4
