@@ -46,3 +46,12 @@ yarn-error.log
 
 /.versionrc.json
 RELEASE_NOTES.md
+
+lib/*.d.ts
+lib/helper/*.d.ts
+lib/*.js
+lib/helper/*.js
+test/*.d.ts
+test/*.js
+bin/*.d.ts
+bin/*.js
