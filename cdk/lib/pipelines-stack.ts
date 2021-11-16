@@ -56,7 +56,7 @@ export class PipelineStack extends Stack {
     })
     codebuildRunPolicy.addStatements(
       new iam.PolicyStatement({
-        actions: ["codebuild:*"],
+        actions: ["codebuild:*","ecr:*"],
         effect: iam.Effect.ALLOW,
         resources: [`*`]
       })
