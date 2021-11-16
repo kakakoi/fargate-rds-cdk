@@ -41,9 +41,13 @@ export class PipelineStack extends Stack {
       }
     })
 
+    // ECR NAME
     const ecrName = contextHelper.generate("ecr")
-    const user = new iam.User(this, 'User');
-    ecr.AuthorizationToken.grantRead(user);
+    // IAM CODEBUILD ECR
+    const codebuildEcrRole = new iam.Role(this, contextHelper.generate("codebuild-ecr-role"), {
+      roleName: contextHelper.generate("codebuild-ecr-role"),
+      assumedBy: new iam.ServicePrincipal('ecr.amazonaws.com'),
+    });
 
     pipeline.addStage(stage, {
       post: [
@@ -55,19 +59,7 @@ export class PipelineStack extends Stack {
             `docker tag ${ecrName}:latest ${account}.dkr.ecr.${region}.amazonaws.com/${ecrName}:latest`,
             `docker push ${account}.dkr.ecr.${region}.amazonaws.com/${ecrName}:latest`
           ],
-          rolePolicyStatements: [
-            new iam.PolicyStatement({
-              resources:[`arn:aws:ecr:${region}:${account}:repository/${ecrName}`],
-              actions: [
-                "ecr:BatchCheckLayerAvailability",
-                "ecr:CompleteLayerUpload",
-                "ecr:GetAuthorizationToken",
-                "ecr:InitiateLayerUpload",
-                "ecr:PutImage",
-                "ecr:UploadLayerPart"
-              ]
-            }),
-          ]
+          role: codebuildEcrRole
         })
       ]
     });
