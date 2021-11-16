@@ -1,9 +1,10 @@
 import { EcrStack } from './ecr-stack';
+import { EcsStack } from './ecs-stack';
 import { Construct, Stage, Stack, StackProps, StageProps, SecretValue } from '@aws-cdk/core';
 import { CodePipeline, CodePipelineSource, ShellStep, CodeBuildStep } from '@aws-cdk/pipelines';
 import { ContextHelper } from './helper/context-helper';
 import * as iam from '@aws-cdk/aws-iam'
-import * as ecr from '@aws-cdk/aws-ecr';
+
 /**
  * パイプラインを定義するStack
  */
@@ -34,7 +35,14 @@ export class PipelineStack extends Stack {
       }),
     });
 
-    const stage = new PipelinesStage(this, 'PipelinesStage', {
+    const ecrStage = new PipelinesEcrStage(this, 'PipelinesEcrStage', {
+      env: {
+        account: account,
+        region: region,
+      }
+    })
+
+    const ecsStage = new PipelinesEcsStage(this, 'PipelinesEcsStage', {
       env: {
         account: account,
         region: region,
@@ -73,7 +81,7 @@ export class PipelineStack extends Stack {
     )
     codebuildEcrRole.attachInlinePolicy(codebuildRunPolicy)
 
-    pipeline.addStage(stage, {
+    pipeline.addStage(ecrStage, {
       post: [
         new CodeBuildStep('DockerBuild', {
           buildEnvironment: { privileged: true },
@@ -88,16 +96,27 @@ export class PipelineStack extends Stack {
         })
       ]
     });
+
+    pipeline.addStage(ecsStage)
   }
 }
 
 /**
  * Deployable unit of ecr
  */
-class PipelinesStage extends Stage {
+class PipelinesEcrStage extends Stage {
   constructor(scope: Construct, id: string, props?: StageProps) {
     super(scope, id, props);
+    const ecrStack = new EcrStack(this, 'ecr');
+  }
+}
 
+/**
+ * Deployable unit of ecr
+ */
+ class PipelinesEcsStage extends Stage {
+  constructor(scope: Construct, id: string, props?: StageProps) {
+    super(scope, id, props);
     const ecrStack = new EcrStack(this, 'ecr');
   }
 }
