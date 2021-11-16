@@ -76,6 +76,7 @@ export class PipelineStack extends Stack {
     pipeline.addStage(stage, {
       post: [
         new CodeBuildStep('DockerBuild', {
+          buildEnvironment: { privileged: true },
           input: source,
           commands: [
             `aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${account}.dkr.ecr.${region}.amazonaws.com`,
