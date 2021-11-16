@@ -20,6 +20,8 @@ export class PipelineStack extends Stack {
           'npm i -g npm && npm ci',
           // 'npm run build',
           'npx cdk synth',
+          'ls -la',
+          'mv cdk.out $CODEBUILD_SRC_DIR',
           'cd $CODEBUILD_SRC_DIR',
         ],
       }),
