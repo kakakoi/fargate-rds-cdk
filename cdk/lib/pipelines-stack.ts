@@ -56,11 +56,12 @@ export class PipelineStack extends Stack {
     })
     codebuildRunPolicy.addStatements(
       new iam.PolicyStatement({
-        actions: ["codebuild:StartBuild", "codebuild:BatchGetBuilds"],
+        actions: ["codebuild:*"],
         effect: iam.Effect.ALLOW,
-        resources: [`arn:aws:codebuild:${region}:${account}:project/*`]
+        resources: [`*`]
       })
     )
+
     codebuildRunPolicy.addStatements(
       new iam.PolicyStatement({
         actions: ["logs:GetLogEvents"],
