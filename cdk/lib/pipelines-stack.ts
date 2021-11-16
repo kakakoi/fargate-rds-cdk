@@ -117,6 +117,6 @@ class PipelinesEcrStage extends Stage {
  class PipelinesEcsStage extends Stage {
   constructor(scope: Construct, id: string, props?: StageProps) {
     super(scope, id, props);
-    const ecsStack = new EcsStack(this, 'ecr');
+    const ecsStack = new EcsStack(this, 'ecs');
   }
 }
