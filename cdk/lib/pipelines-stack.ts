@@ -57,6 +57,7 @@ export class PipelineStack extends Stack {
           ],
           rolePolicyStatements: [
             new iam.PolicyStatement({
+              resources:[`arn:aws:ecr:${region}:${account}:repository/${ecrName}`],
               actions: [
                 "ecr:BatchCheckLayerAvailability",
                 "ecr:CompleteLayerUpload",
