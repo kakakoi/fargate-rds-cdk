@@ -51,6 +51,26 @@ export class PipelineStack extends Stack {
         new iam.ServicePrincipal('codebuild.amazonaws.com'),
       ),
     });
+    const codebuildRunPolicy = new iam.Policy(this, "codebuild-run", {
+      policyName: "codebuild-run"
+    })
+    codebuildRunPolicy.addStatements(
+      new iam.PolicyStatement({
+        actions: ["codebuild:StartBuild", "codebuild:BatchGetBuilds"],
+        effect: iam.Effect.ALLOW,
+        resources: [`arn:aws:codebuild:${region}:${account}:project/*`]
+      })
+    )
+    codebuildRunPolicy.addStatements(
+      new iam.PolicyStatement({
+        actions: ["logs:GetLogEvents"],
+        effect: iam.Effect.ALLOW,
+        resources: [
+          `arn:aws:logs:${region}:${account}:log-group:/aws/codebuild/*:*`
+        ]
+      })
+    )
+    codebuildEcrRole.attachInlinePolicy(codebuildRunPolicy)
     ecr.AuthorizationToken.grantRead(codebuildEcrRole);
 
     pipeline.addStage(stage, {
