@@ -1,8 +1,9 @@
 import { EcrStack } from './ecr-stack';
 import { Construct, Stage, Stack, StackProps, StageProps, SecretValue } from '@aws-cdk/core';
-import { CodePipeline, CodePipelineSource, ShellStep } from '@aws-cdk/pipelines';
+import { CodePipeline, CodePipelineSource, ShellStep, CodeBuildStep } from '@aws-cdk/pipelines';
 import { ContextHelper } from './helper/context-helper';
-
+import * as iam from '@aws-cdk/aws-iam'
+import * as ecr from '@aws-cdk/aws-ecr';
 /**
  * パイプラインを定義するStack
  */
@@ -41,17 +42,32 @@ export class PipelineStack extends Stack {
     })
 
     const ecrName = contextHelper.generate("ecr")
+    const user = new iam.User(this, 'User');
+    ecr.AuthorizationToken.grantRead(user);
 
     pipeline.addStage(stage, {
-      post: [new ShellStep('DockerBuild', {
-        input: source,
-        commands: [
-          `aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${account}.dkr.ecr.${region}.amazonaws.com`,
-          `docker build -t ${ecrName} .`,
-          `docker tag ${ecrName}:latest ${account}.dkr.ecr.${region}.amazonaws.com/${ecrName}:latest`,
-          `docker push ${account}.dkr.ecr.${region}.amazonaws.com/${ecrName}:latest`
-        ]
-      })
+      post: [
+        new CodeBuildStep('DockerBuild', {
+          input: source,
+          commands: [
+            `aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${account}.dkr.ecr.${region}.amazonaws.com`,
+            `docker build -t ${ecrName} .`,
+            `docker tag ${ecrName}:latest ${account}.dkr.ecr.${region}.amazonaws.com/${ecrName}:latest`,
+            `docker push ${account}.dkr.ecr.${region}.amazonaws.com/${ecrName}:latest`
+          ],
+          rolePolicyStatements: [
+            new iam.PolicyStatement({
+              actions: [
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:CompleteLayerUpload",
+                "ecr:GetAuthorizationToken",
+                "ecr:InitiateLayerUpload",
+                "ecr:PutImage",
+                "ecr:UploadLayerPart"
+              ]
+            }),
+          ]
+        })
       ]
     });
   }
