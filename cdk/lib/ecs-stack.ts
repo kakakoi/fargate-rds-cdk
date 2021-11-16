@@ -39,16 +39,8 @@ export class EcsStack extends cdk.Stack {
     setInterfaceEndpoint(vpc)
 
     // ECR
-    const repository = new ecr.Repository(this, contextHelper.generate('ecr'), {
-      repositoryName: contextHelper.generate("ecr"),
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      lifecycleRules: [
-        {
-          tagStatus: ecr.TagStatus.ANY,
-          maxImageCount: 3
-        }
-      ]
-    });
+    const repository = ecr.Repository.fromRepositoryName(this, contextHelper.generate('ecr'),
+      contextHelper.generate('ecr'))
 
     // IAM ECS APP
     const taskIamRole = new iam.Role(this, contextHelper.generate("ecs-task-role"), {
