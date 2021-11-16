@@ -1,3 +1,6 @@
+account=
+region=
+
 # npm 更新していないとエラーが出やすいので適宜実行
 .PHONY: cdk-npm-update
 cdk-npm-update:
@@ -32,3 +35,7 @@ cdk-pipeline-destroy:
 .PHONY: docker-compose-destroy
 docker-compose-destroy:
 	docker-compose down --rmi all --volumes --remove-orphans
+
+.PHONY: cdk-bootstrap
+cdk-bootstrap:
+	cd cdk;	npx cdk bootstrap --cloudformation-execution-policies arn:aws:iam::aws:policy/AdministratorAccess aws://${account}/${region}
