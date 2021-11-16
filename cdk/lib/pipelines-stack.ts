@@ -17,8 +17,8 @@ export class PipelineStack extends Stack {
         }),
         commands: [
           'cd cdk',
-          'npm ci',
-          'npm run build',
+          'npm i -g npm && npm ci',
+          // 'npm run build',
           'npx cdk synth',
         ],
       }),
