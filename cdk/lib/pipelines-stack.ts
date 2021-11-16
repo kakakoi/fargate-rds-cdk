@@ -46,8 +46,12 @@ export class PipelineStack extends Stack {
     // IAM CODEBUILD ECR
     const codebuildEcrRole = new iam.Role(this, contextHelper.generate("codebuild-ecr-role"), {
       roleName: contextHelper.generate("codebuild-ecr-role"),
-      assumedBy: new iam.ServicePrincipal('ecr.amazonaws.com'),
+      assumedBy: new iam.CompositePrincipal(
+        new iam.ServicePrincipal('ecs.amazonaws.com'),
+        new iam.ServicePrincipal('codebuild.amazonaws.com'),
+      ),
     });
+    ecr.AuthorizationToken.grantRead(codebuildEcrRole);
 
     pipeline.addStage(stage, {
       post: [
