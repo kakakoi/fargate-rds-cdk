@@ -71,6 +71,8 @@ export class PipelineStack extends Stack {
         ]
       })
     )
+    codebuildEcrRole.attachInlinePolicy(codebuildRunPolicy)
+    ecr.AuthorizationToken.grantRead(codebuildEcrRole);
 
     pipeline.addStage(stage, {
       post: [
