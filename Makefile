@@ -21,6 +21,14 @@ cdk-ecs-deploy:
 cdk-ecs-destroy:
 	cd cdk;	cdk destroy EcsStack -c stage=${STAGE}
 
+.PHONY: cdk-pipeline-deploy
+cdk-pipeline-deploy:
+	cd cdk;	cdk deploy PipelineStack -c stage=${STAGE}
+
+.PHONY: cdk-pipeline-destroy
+cdk-pipeline-destroy:
+	cd cdk;	cdk destroy PipelineStack -c stage=${STAGE}
+
 .PHONY: docker-compose-destroy
 docker-compose-destroy:
 	docker-compose down --rmi all --volumes --remove-orphans
