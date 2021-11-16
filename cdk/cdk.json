@@ -14,7 +14,9 @@
     "@aws-cdk/aws-efs:defaultEncryptionAtRest": true,
     "@aws-cdk/aws-lambda:recognizeVersionProps": true,
     "@aws-cdk/aws-cloudfront:defaultSecurityPolicyTLSv1.2_2021": true,
+    "@aws-cdk/core:newStyleStackSynthesis": true,
 
-    "project": "fargate-rds-cdk"
+    "project": "fargate-rds-cdk",
+    "stage": "staging"
   }
 }

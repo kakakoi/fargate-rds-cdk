@@ -5,6 +5,7 @@ import * as ecs from '@aws-cdk/aws-ecs';
 import * as ecr from '@aws-cdk/aws-ecr';
 import * as logs from '@aws-cdk/aws-logs';
 import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2'
+import * as ecrdeploy from '@aws-cdk/aws-ecr-assets';
 import { ContextHelper } from './helper/context-helper';
 
 
@@ -112,7 +113,7 @@ export class EcsStack extends cdk.Stack {
     const fargateService = new ecs.FargateService(this, contextHelper.generate("fargate-service"), {
       serviceName: contextHelper.generate("fargate-service"),
       cluster: cluster,
-      // vpcSubnets: vpc.selectSubnets({ subnetType: ec2.SubnetType.PRIVATE }),
+      // vpcSubnets: vpc.selectSubnets({ subnetType: ec2.SubnetType.ISOLATED }),
       vpcSubnets: vpc.selectSubnets({
         subnets: [
           ec2.Subnet.fromSubnetAttributes(this, "private-subnet-app-1", {
