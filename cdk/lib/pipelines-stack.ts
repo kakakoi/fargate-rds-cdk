@@ -35,14 +35,7 @@ export class PipelineStack extends Stack {
       }),
     });
 
-    const ecrStage = new PipelinesEcrStage(this, 'PipelinesEcrStage', {
-      env: {
-        account: account,
-        region: region,
-      }
-    })
-
-    const ecsStage = new PipelinesEcsStage(this, 'PipelinesEcsStage', {
+    const stage = new PipelinesStage(this, 'PipelinesStage', {
       env: {
         account: account,
         region: region,
@@ -64,7 +57,7 @@ export class PipelineStack extends Stack {
     })
     codebuildRunPolicy.addStatements(
       new iam.PolicyStatement({
-        actions: ["codebuild:*","ecr:*"],
+        actions: ["codebuild:*", "ecr:*"],
         effect: iam.Effect.ALLOW,
         resources: [`*`]
       })
@@ -81,42 +74,50 @@ export class PipelineStack extends Stack {
     )
     codebuildEcrRole.attachInlinePolicy(codebuildRunPolicy)
 
-    pipeline.addStage(ecrStage, {
-      post: [
-        new CodeBuildStep('DockerBuild', {
-          buildEnvironment: { privileged: true },
-          input: source,
-          commands: [
-            `aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${account}.dkr.ecr.${region}.amazonaws.com`,
-            `docker build -t ${ecrName} .`,
-            `docker tag ${ecrName}:latest ${account}.dkr.ecr.${region}.amazonaws.com/${ecrName}:latest`,
-            `docker push ${account}.dkr.ecr.${region}.amazonaws.com/${ecrName}:latest`
-          ],
-          role: codebuildEcrRole
-        })
+    pipeline.addStage(stage, {
+      stackSteps: [{
+        stack: stage.ecrStack,
+        post: [
+          new CodeBuildStep('DockerBuild', {
+            buildEnvironment: { privileged: true },
+            input: source,
+            commands: [
+              `aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${account}.dkr.ecr.${region}.amazonaws.com`,
+              `docker build -t ${ecrName} .`,
+              `docker tag ${ecrName}:latest ${account}.dkr.ecr.${region}.amazonaws.com/${ecrName}:latest`,
+              `docker push ${account}.dkr.ecr.${region}.amazonaws.com/${ecrName}:latest`
+            ],
+            role: codebuildEcrRole
+          })
+        ]
+      },
+      {
+        stack: stage.ecsStack,
+        post: [
+          new CodeBuildStep('ecsBuild', {
+            input: source,
+            commands: [
+              'pwd'
+            ],
+            role: codebuildEcrRole
+          })
+        ]},
       ]
     });
 
-    pipeline.addStage(ecsStage)
   }
 }
 
 /**
  * Deployable unit of ecr
  */
-class PipelinesEcrStage extends Stage {
-  constructor(scope: Construct, id: string, props?: StageProps) {
-    super(scope, id, props);
-    const ecrStack = new EcrStack(this, 'ecr');
-  }
-}
+class PipelinesStage extends Stage {
+  public readonly ecrStack: Stack;
+  public readonly ecsStack: Stack;
 
-/**
- * Deployable unit of ecr
- */
- class PipelinesEcsStage extends Stage {
   constructor(scope: Construct, id: string, props?: StageProps) {
     super(scope, id, props);
-    const ecsStack = new EcsStack(this, 'ecs');
+    this.ecrStack = new EcrStack(this, 'ecr');
+    this.ecsStack = new EcsStack(this, 'ecs');
   }
 }
