@@ -13,8 +13,10 @@ import { ContextHelper } from './helper/context-helper';
 const paramsConfig = {
   staging: {
     vpcId: "vpc-0105a6541310a237c",
-    subnetPrivateApp1: { subnetId: "subnet-0376154534a2591a4", az: "ap-northeast-1a" },
-    subnetPrivateApp2: { subnetId: "subnet-0b1c3d398925568f5", az: "ap-northeast-1c" },
+    // subnetPrivateApp1: { subnetId: "subnet-0376154534a2591a4", az: "ap-northeast-1a" },//private
+    // subnetPrivateApp2: { subnetId: "subnet-0b1c3d398925568f5", az: "ap-northeast-1c" },//private
+    subnetPrivateApp1: { subnetId: "subnet-07c363125b7ce1306", az: "ap-northeast-1a" },//public
+    subnetPrivateApp2: { subnetId: "subnet-092823d197dfb3877", az: "ap-northeast-1c" },//public
   },
   production: {
     vpcId: "",
@@ -36,7 +38,7 @@ export class EcsStack extends cdk.Stack {
     }) as ec2.Vpc
 
     // INTERFACE ENDPOINT
-    setInterfaceEndpoint(vpc)
+    // setInterfaceEndpoint(vpc)
 
     // ECR
     const repository = ecr.Repository.fromRepositoryName(this, contextHelper.generate('ecr'),
@@ -85,27 +87,28 @@ export class EcsStack extends cdk.Stack {
     })
 
     // LOG
-    const logGroup = new logs.LogGroup(this, contextHelper.generate("ecs-loggroup"), {
-      logGroupName: contextHelper.generate("ecs-loggroup"),
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      retention: logs.RetentionDays.ONE_MONTH
-    })
+    // const logGroup = new logs.LogGroup(this, contextHelper.generate("ecs-loggroup"), {
+    //   logGroupName: contextHelper.generate("ecs-loggroup"),
+    //   removalPolicy: cdk.RemovalPolicy.DESTROY,
+    //   retention: logs.RetentionDays.ONE_MONTH,
+    // })
 
     // ECS
     const container = taskDefinition.addContainer(contextHelper.generate('container'), {
-      image: ecs.ContainerImage.fromEcrRepository(repository, 'latest'),
-      portMappings: [{ containerPort: 80 }],
-      logging: ecs.LogDriver.awsLogs({
-        streamPrefix: contextHelper.generate("ecs-log"),
-        logGroup,
-      }),
+      // image: ecs.ContainerImage.fromEcrRepository(repository, 'latest'),
+      image: ecs.ContainerImage.fromAsset('../')
+      // portMappings: [{ containerPort: 80 }],
+      // logging: ecs.LogDriver.awsLogs({
+      //   streamPrefix: contextHelper.generate("ecs-log"),
+      //   logGroup,
+      // }),
     });
 
     // SERVICE
     const fargateService = new ecs.FargateService(this, contextHelper.generate("fargate-service"), {
       serviceName: contextHelper.generate("fargate-service"),
       cluster: cluster,
-      // vpcSubnets: vpc.selectSubnets({ subnetType: ec2.SubnetType.ISOLATED }),
+      // vpcSubnets: vpc.selectSubnets({ subnetType: ec2.SubnetType.PRIVATE_ISOLATED }),
       vpcSubnets: vpc.selectSubnets({
         subnets: [
           ec2.Subnet.fromSubnetAttributes(this, "private-subnet-app-1", {
@@ -120,20 +123,20 @@ export class EcsStack extends cdk.Stack {
       }),
       securityGroup: serviceSg,
       taskDefinition: taskDefinition,
-      desiredCount: 2,
-      maxHealthyPercent: 200,
-      minHealthyPercent: 50,
-      enableExecuteCommand: true, //ECS EXEC
+      // desiredCount: 2,
+      // maxHealthyPercent: 200,
+      // minHealthyPercent: 50,
+      // enableExecuteCommand: true, //ECS EXEC
     })
 
     // ALB TARGET
-    fargateService.loadBalancerTarget({
-      containerName: container.containerName,
-      containerPort: 80,
-    });
+    // fargateService.loadBalancerTarget({
+    //   containerName: container.containerName,
+    //   containerPort: 80,
+    // });
 
-    // ALB
-    createAlb(this, vpc, fargateService)
+    // // ALB
+    // createAlb(this, vpc, fargateService)
   }
 }
 
